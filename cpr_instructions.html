@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CPR Instructions</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #ffffff;
+            transition: background-color 0.1s;
+        }
+        .container {
+            max-width: 400px;
+            margin: auto;
+        }
+        button {
+            padding: 10px 20px;
+            margin: 10px 0;
+            font-size: 1em;
+        }
+        #timer {
+            font-size: 2em;
+            margin: 10px 0;
+        }
+        .emergency-message {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #d9534f;
+            margin: 15px 0;
+        }
+        .motivational-message {
+            font-size: 1em;
+            font-weight: bold;
+            color: #5cb85c;
+            margin-top: 15px;
+        }
+        .disclaimer {
+            font-size: 0.9em;
+            color: #555;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Emergency CPR Instructions</h1>
+    <div class="container">
+        <button onclick="enableAudio()">Enable Audio</button>
+        <p>Select Age Group:</p>
+        <button onclick="setInstructions('adult')">Adult</button>
+        <button onclick="setInstructions('child')">Child</button>
+        <button onclick="setInstructions('infant')">Infant</button>
+        
+        <div id="instructions"></div>
+        <div class="emergency-message" id="emergency-message">
+            Contact emergency services immediately and start CPR.<br>
+            Tell them your location, the person's condition, and that you're performing CPR.
+        </div>
+        <p id="timer">0</p>
+        <button onclick="startCPRTimer()">Start CPR Timer</button>
+        <button onclick="stopAndReset()">Stop/Reset</button>
+        <div class="motivational-message" id="motivational-message"></div>
+    </div>
+
+    <audio id="beep" src="https://www.soundjay.com/button/beep-07.wav"></audio>
+
+    <div class="disclaimer">
+        <p>
+            Disclaimer: This tool is intended to guide you in an emergency but does not replace formal CPR training or professional medical assistance.
+            Use it at your own risk. For more information, visit the <a href="https://www.nhs.uk/conditions/first-aid/cpr/" target="_blank">NHS CPR guidance</a> page.
+        </p>
+    </div>
+
+    <script>
+        let interval, compressionInterval;
+        let compressionsTime = 30, breathsTime = 4, compressionRate = 0.5;
+        let isCompressionPhase = true;
+        let audioEnabled = false;
+
+        const beepSound = document.getElementById("beep");
+        const motivationalMessages = [
+            "Stay strong—you’re making a difference!",
+            "Keep going! Help is on the way.",
+            "You’re doing great. Every compression helps!",
+            "Don’t give up. You’re saving a life.",
+            "Stay focused. You're giving them a chance!"
+        ];
+
+        function enableAudio() {
+            audioEnabled = true;
+            beepSound.play().then(() => beepSound.pause());
+        }
+
+        function setInstructions(group) {
+            isCompressionPhase = true;
+            clearInterval(interval);
+            clearInterval(compressionInterval);
+            document.getElementById("timer").textContent = 0;
+            const instructions = {
+                adult: "Adult: 30 compressions, 2 breaths.",
+                child: "Child: 30 compressions, 2 breaths.",
+                infant: "Infant: 30 compressions, 2 gentle breaths."
+            };
+            document.getElementById("instructions").textContent = instructions[group];
+            showMotivationalMessage();
+        }
+
+        function startCPRTimer() {
+            clearInterval(interval);
+            clearInterval(compressionInterval);
+            isCompressionPhase = true;
+            document.getElementById("timer").textContent = compressionsTime;
+            runCompressionPhase();
+        }
+
+        function runCompressionPhase() {
+            let time = compressionsTime;
+            document.getElementById("timer").textContent = time;
+            document.body.style.backgroundColor = "#ffffff";
+            startCompressions();
+
+            interval = setInterval(() => {
+                time--;
+                document.getElementById("timer").textContent = time;
+
+                if (time <= 0) {
+                    clearInterval(interval);
+                    stopCompressions();
+                    runBreathPhase();
+                }
+            }, 1000);
+        }
+
+        function runBreathPhase() {
+            let time = breathsTime;
+            document.getElementById("timer").textContent = time;
+            document.body.style.backgroundColor = "#cce5ff";
+
+            interval = setInterval(() => {
+                time--;
+                document.getElementById("timer").textContent = time;
+
+                if (time <= 0) {
+                    clearInterval(interval);
+                    runCompressionPhase();
+                    showMotivationalMessage();
+                }
+            }, 1000);
+        }
+
+        function startCompressions() {
+            if (audioEnabled) {
+                compressionInterval = setInterval(() => {
+                    if (!beepSound.paused) beepSound.pause();
+                    beepSound.currentTime = 0;
+                    beepSound.play();
+                    flashBackground();
+                }, compressionRate * 1000);
+            }
+        }
+
+        function stopCompressions() {
+            clearInterval(compressionInterval);
+            document.body.style.backgroundColor = "#ffffff";
+        }
+
+        function flashBackground() {
+            document.body.style.backgroundColor = "#ff0000";
+            setTimeout(() => {
+                document.body.style.backgroundColor = "#ffffff";
+            }, 100);
+        }
+
+        function stopAndReset() {
+            clearInterval(interval);
+            clearInterval(compressionInterval);
+            document.getElementById("timer").textContent = 0;
+            document.body.style.backgroundColor = "#ffffff";
+        }
+
+        function showMotivationalMessage() {
+            const message = motivationalMessages[Math.floor(Math.random() * motivationalMessages.length)];
+            document.getElementById("motivational-message").textContent = message;
+        }
+    </script>
+</body>
+</html>
